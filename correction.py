@@ -1,10 +1,9 @@
 import io
-from typing import Optional, Dict
-
 import pandas as pd
-import uvicorn
 
-from fastapi import FastAPI, UploadFile, File, Query
+from typing import Optional, Dict
+from fastapi import UploadFile, APIRouter, Request, Form, File
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sage.spelling_correction import T5ModelForSpellingCorruption,\
     RuM2M100ModelForSpellingCorrection,  \
@@ -16,7 +15,8 @@ TODO: add language support
 """
 
 
-app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+router = APIRouter(prefix="/correct", tags=["Correction"])
 
 
 def __init_models() -> None:
@@ -66,8 +66,7 @@ async def __parse_file(file: UploadFile, sep: str = ",") -> str:
 
 
 def __validate_text(request) -> [bool, Dict]:
-    # FIXME: FastAPI вроде предоставляет валидацию
-    if not request.text and not request.file:  # OK
+    if not request.text and not request.file:
         return False, {"error": "Either text or file must be provided"}
     else:
         return True, {""}
@@ -81,12 +80,25 @@ def __validate_model(request) -> [bool, Dict]:
         return True, {""}
 
 
-@app.post("/correct", response_model=CorrectionResponse)
+@router.get("/")
+async def get_correct_page(request: Request):
+    return templates.TemplateResponse("SAGE_correct.html", {"request": request})
+
+
+@router.post("/", response_model=CorrectionResponse)
 async def correct(
-        request: CorrectionRequest,
+    model_name: str = Form(...),
+    text: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    keep_original: bool = Form(False),  # Отсутствует keep_original
 ):
     """Correction method"""
-
+    request = CorrectionRequest(
+        model_name=model_name,
+        text=text,
+        file=file,
+        keep_original=keep_original,
+    )
     status, response = __validate_text(request)
     if not status:
         return response
@@ -117,13 +129,3 @@ async def correct(
             corrected = "\n".join([f"{line} {line}" for line in content.split("\n")])
 
     return CorrectionResponse(corrected_text=corrected)
-
-
-if __name__ == '__main__':
-    # __init_models()  --  Too tough for local RAM
-    uvicorn.run(
-            "correction:app",
-            host="0.0.0.0",
-            port=8000,
-            # workers=(os.cpu_count() // 2),
-        )
