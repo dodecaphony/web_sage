@@ -7,11 +7,10 @@ from correction import router as correct_router
 from augmentation import router as augment_router
 
 
-templates = Jinja2Templates(directory="templates")
-
 app = FastAPI()
 app.include_router(correct_router)
 app.include_router(augment_router)
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/")

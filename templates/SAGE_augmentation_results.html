@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+    <title>SAGE: results</title>
+    <style>
+        .btn {
+            background-color: #B7EAAD;
+            border-color: #B7EAAD;
+            text-decoration: none;
+
+        }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #B7EAAD;">
+      <div class="container-fluid">
+        <a class="navbar-brand px-5" href="/">SAGE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 px-5">
+            <li class="nav-item px-3">
+              <a class="nav-link" aria-current="page" href="/correct">Correct</a>
+            </li>
+            <li class="nav-item dropdown px-3">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Augment
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="/augment/sbsc">SBSC</a></li>
+                <li><a class="dropdown-item" href="/augment/augmentex">Augmentex</a></li>
+                <li><a class="dropdown-item" href="/augment/pipeline">Pipeline</a></li>
+              </ul>
+            </li>
+            <li class="nav-item px-3">
+              <a class="nav-link" href="/help">Help</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="px-1 py-3 my-5 mx-auto text-center">
+      <div class="col-lg-11 mx-auto">
+        <h4>Results for {{action}} with method {{method}}</h4>
+        <h4><span class="badge badge-secondary">Results for {{action}} with method {{method}}</span></h4>
+
+        <table class="table">
+          <thead>
+            <tr>
+                <th scope="col">Original text</th>
+                <th scope="col">Modified text</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for orig, modif in results %}
+              <tr>
+                <td>{{orig}}</td>
+                <td>{{modif}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <center>
+        <button type="button" onclick="tableToCSV()">Download results as TSV file </button>
+    </center>
+
+    <script type="text/javascript">
+        function tableToCSV() {
+
+            // Variable to store the final csv data
+            let csv_data = [];
+
+            // Get each row data
+            let rows = document.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+
+                // Get each column data
+                let cols = rows[i].querySelectorAll('td,th');
+
+                // Stores each csv row data
+                let csvrow = [];
+                for (let j = 0; j < cols.length; j++) {
+
+                    // Get the text data of each cell
+                    // of a row and push it to csvrow
+                    csvrow.push(cols[j].innerHTML);
+                }
+
+                // Combine each column value with comma
+                csv_data.push(csvrow.join("\t"));
+            }
+
+            // Combine each row data with new line character
+            csv_data = csv_data.join('\n');
+
+            // Call this function to download csv file
+            downloadCSVFile(csv_data);
+
+        }
+
+        function downloadCSVFile(csv_data) {
+
+            // Create CSV file object and feed
+            // our csv_data into it
+            CSVFile = new Blob([csv_data], {
+                type: "text/csv"
+            });
+
+            // Create to temporary link to initiate
+            // download process
+            let temp_link = document.createElement('a');
+
+            // Download csv file
+            temp_link.download = "web_sage_result.tsv";
+            let url = window.URL.createObjectURL(CSVFile);
+            temp_link.href = url;
+
+            // This link should not be displayed
+            temp_link.style.display = "none";
+            document.body.appendChild(temp_link);
+
+            // Automatically click the link to
+            // trigger download
+            temp_link.click();
+            document.body.removeChild(temp_link);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  </body>
+</html>
