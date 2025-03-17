@@ -46,14 +46,14 @@ async def get_correct_page(request: Request):
     return templates.TemplateResponse("SAGE_correct.html", {"request": request})
 
 
-async def start_correction(task_id: str, model_name: str, content: str):
+async def start_correction(task_id: str, model_name: str, batches: list):
     corrector = Corrector()
-    corrected = await asyncio.to_thread(corrector.correct, model_name, content)
+    corrected = await asyncio.to_thread(corrector.correct, model_name, batches)
 
     TASK_RESULTS[task_id] = {
         "action": "correction",
         "model": model_name,
-        "results": [(content, corrected)],
+        "results": list(zip(batches, corrected))
     }
 
 
@@ -76,14 +76,14 @@ async def correct(
         return response
 
     if file and file.filename and file.size > 0:
-        content = await FileProcessor.parse_file(file)
+        batches = await FileProcessor.parse_file(file)
     else:
-        content = corr_request.text
+        batches = [corr_request.text]
 
     task_id = str(uuid.uuid4())
     TASK_RESULTS[task_id] = None
 
-    background_tasks.add_task(start_correction, task_id, model_name, content)
+    background_tasks.add_task(start_correction, task_id, model_name, batches)
     return RedirectResponse(url=f"/correct/wait?task_id={task_id}", status_code=303)
 
 

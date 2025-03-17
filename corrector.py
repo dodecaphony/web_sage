@@ -19,7 +19,7 @@ class Corrector:
             AvailableCorrectors.m2m100_418M,
         }
 
-    def correct(self, model_name, content):
+    def correct(self, model_name: str, batches: []):
         corrector = None
         for model in self.__t5_models:
             if model_name == model.name:
@@ -32,5 +32,4 @@ class Corrector:
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         corrector.model.to(device)
-        result = corrector.correct(content)
-        return result[0]
+        return [corrector.correct(batch)[0] for batch in batches]

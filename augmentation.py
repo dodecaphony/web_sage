@@ -14,10 +14,6 @@ from corruptor import Corruptor
 router = APIRouter(prefix="/augment", tags=["Augmentation"])
 templates = Jinja2Templates(directory="templates")
 
-"""
-В идеале иметь страницу выбора методов аугментации /augment ?
-"""
-
 
 TASK_RESULTS = {}
 
@@ -48,6 +44,7 @@ class SBSCRequest(BaseModel):
 class PipelineRequest(BaseModel):
     """Request model for Pipeline"""
     # methods: str = None
+    # TODO: shuffle: [bool] param
     method_1: Optional[str] = None
     method_2: Optional[str] = None
     method_3: Optional[str] = None
@@ -71,7 +68,7 @@ async def augment(request: Request):
     return templates.TemplateResponse("SAGE_augmentex.html", {"request": request})
 
 
-async def start_augmentex_augmentation(task_id: str, content: str, **kwargs):
+async def start_augmentex_augmentation(task_id: str, batches: list, **kwargs):
     corrupt = Corruptor()
     corrupted = await asyncio.to_thread(
         corrupt.corrupt_with_augmentex,
@@ -79,13 +76,14 @@ async def start_augmentex_augmentation(task_id: str, content: str, **kwargs):
         kwargs['unit_prob'],
         kwargs['min_aug'],
         kwargs['max_aug'],
-        content
+        kwargs['seed'],
+        batches
     )
 
     TASK_RESULTS[task_id] = {
         "action": "augmentation",
         "method": "Augmentex",
-        "results": [(content, corrupted)],
+        "results": list(zip(batches, corrupted)),
     }
 
 
@@ -115,14 +113,14 @@ async def augment_with_augmentex(
     )
 
     if file and file.filename and file.size > 0:
-        content = await FileProcessor.parse_file(file)
+        batches = await FileProcessor.parse_file(file)
     else:
-        content = aug_request.text
+        batches = [aug_request.text]
 
     task_id = str(uuid.uuid4())
     TASK_RESULTS[task_id] = None
 
-    background_tasks.add_task(start_augmentex_augmentation, task_id, content, **aug_request.dict())
+    background_tasks.add_task(start_augmentex_augmentation, task_id, batches, **aug_request.dict())
     return RedirectResponse(url=f"/augment/augmentex/wait?task_id={task_id}", status_code=303)
 
 
@@ -140,6 +138,27 @@ async def wait_for_results(request: Request, task_id: str):
 @router.get("/pipeline")
 async def augment(request: Request):
     return templates.TemplateResponse("SAGE_pipeline.html", {"request": request})
+
+
+async def start_pipeline_augmentation(task_id: str, batches: list, **kwargs):
+    corrupt = Corruptor()
+    corrupted = await asyncio.to_thread(
+        corrupt.corrupt_with_pipeline,
+        [kwargs['method_1'], kwargs['method_2'], kwargs['method_3']],
+        kwargs['language'],
+        kwargs['unit_prob'],
+        kwargs['min_aug'],
+        kwargs['max_aug'],
+        kwargs['seed'],
+        batches,
+        kwargs['dataset']
+    )
+
+    TASK_RESULTS[task_id] = {
+        "action": "augmentation",
+        "method": "Pipeline",
+        "results": list(zip(batches, corrupted)),
+    }
 
 
 @router.post("/pipeline")
@@ -175,15 +194,26 @@ async def augment_with_pipeline(
     )
 
     if file and file.filename and file.size > 0:
-        content = await FileProcessor.parse_file(file)
+        batches = await FileProcessor.parse_file(file)
     else:
-        content = pipe_request.text
+        batches = [pipe_request.text]
 
     task_id = str(uuid.uuid4())
     TASK_RESULTS[task_id] = None
 
-    background_tasks.add_task(start_sbsc_augmentation, task_id, language, dataset, content)
-    return RedirectResponse(url=f"/augment/sbsc/wait?task_id={task_id}", status_code=303)
+    background_tasks.add_task(start_pipeline_augmentation, task_id, batches, **pipe_request.dict())
+    return RedirectResponse(url=f"/augment/pipeline/wait?task_id={task_id}", status_code=303)
+
+
+@router.get("/pipeline/wait")
+async def wait_for_results(request: Request, task_id: str):
+    method = 'pipeline'
+    if TASK_RESULTS.get(task_id) is not None:
+        return RedirectResponse(url=f"/augment/results/{method}/{task_id}")
+    return templates.TemplateResponse("SAGE_pipeline_wait.html",
+                                      {"request": request,
+                                       "task_id": task_id,
+                                       "method": method})
 
 
 @router.get("/sbsc")
@@ -191,14 +221,14 @@ async def augment(request: Request):
     return templates.TemplateResponse("SAGE_sbsc.html", {"request": request})
 
 
-async def start_sbsc_augmentation(task_id: str, content: str, **kwargs):
+async def start_sbsc_augmentation(task_id: str, batches: list, **kwargs):
     corrupt = Corruptor()
-    corrupted = await asyncio.to_thread(corrupt.corrupt_with_sbsc, kwargs['language'], kwargs['dataset'], content)
+    corrupted = await asyncio.to_thread(corrupt.corrupt_with_sbsc, kwargs['language'], kwargs['dataset'], batches)
 
     TASK_RESULTS[task_id] = {
         "action": "augmentation",
         "method": "SBSC",
-        "results": [(content, corrupted)],
+        "results": list(zip(batches, corrupted)),
     }
 
 
@@ -219,14 +249,14 @@ async def augment_with_sbsc(
     )
 
     if file and file.filename and file.size > 0:
-        content = await FileProcessor.parse_file(file)
+        batches = await FileProcessor.parse_file(file)
     else:
-        content = sbsc_request.text
+        batches = [sbsc_request.text]
 
     task_id = str(uuid.uuid4())
     TASK_RESULTS[task_id] = None
 
-    background_tasks.add_task(start_sbsc_augmentation, task_id, content, **sbsc_request.dict())
+    background_tasks.add_task(start_sbsc_augmentation, task_id, batches, **sbsc_request.dict())
     return RedirectResponse(url=f"/augment/sbsc/wait?task_id={task_id}", status_code=303)
 
 

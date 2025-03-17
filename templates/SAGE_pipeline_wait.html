@@ -51,19 +51,11 @@
         <form id="sage-augmentation-pipeline" method="POST" action="/augment/pipeline" autocomplete="off" enctype="multipart/form-data">
 
           <div class="alert alert-secondary" role="alert">
-              text
+              Creates a pipeline, manually sets parameters for the character augmentor and SBS corruptor,
+            creates an AugmentationPipeline with custom settings and disabled shuffling, and manually adds
+            only the necessary augmentors (character and SBS corruptor).
           </div>
           <div class="form-row">
-            <div class="form-group" style="text-align: left">
-              <p></p>
-              <label for="methods_selection">1. Select methods</label>
-              <select class="form-select" id="methods_selection" name="methods" title="Methods" multiple>
-                  <option value="char-augmentex">Char (Augmentex)</option>
-                  <option value="word-augmentex">Word (Augmentex)</option>
-                  <option value="SBSC">SBSC</option>
-              </select>
-            </div>
-            <p></p>
             <div class="form-group" style="text-align: left">
               <label for="methods_selection1">1.1 Select first method</label>
               <select class="form-select" id="methods_selection1" name="method1" title="Method1">
