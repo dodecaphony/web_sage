@@ -44,11 +44,80 @@
         </div>
       </div>
     </nav>
+    <br>
+    <h1 class="display-5 fw-bold gap-3 px-4" style="text-align: center;">About SAGE</h1>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          
+          <h4 style="text-align: center;"><span class="badge bg-secondary">Key features</span></h4>
+          <li style="text-align: left">Multilingual spelling correction with support for Russian and English</li>
+          <li style="text-align: left">Various models of different sizes and characteristics to optimize speed and quality</li>
+          <li style="text-align: left">Augmentation methods for generating training data</li>
+          <li style="text-align: left">Web interface with a convenient input form and file download capabilities</li>
+          <li style="text-align: left">Asynchronous text processing without blocking the interface</li>
+          <li style="text-align: left">Support for different file formats (TXT, CSV, TSV)</li>
+          <li style="text-align: left">REST API for easy integration with other systems</li>
+          <li style="text-align: left">Results in CSV format for easy export</li>
+          <br>
+          <h4 style="text-align: center"><span class="badge bg-secondary">Input data</span></h4>
+          <p style="text-align: left">The system supports the following file formats:</p>
+          <li style="text-align: left">TXT - text files</li>
+          <li style="text-align: left">CSV - comma separated values files</li>
+          <li style="text-align: left">TSV - tab separated values files</li>
+          <br>
+          <h4 style="text-align: center"><span class="badge bg-secondary">Asynchronicity</span></h4>
+          <p style="text-align: left">SAGE uses asynchronous task processing for working with large texts:</p>
+          <ol type="1">
+            <li style="text-align: left">After sending a request, a unique `task_id` is generated</li>
+            <li style="text-align: left">The user is redirected to a waiting page</li>
+            <li style="text-align: left">Every 10 seconds, the page automatically refreshes</li>
+            <li style="text-align: left">When processing completes, a redirect to the results page occurs</li>
+          </ol>
 
-    <div class="px-1 py-3 my-5 mx-auto text-center">
+        </div>
+        <div class="col">
+          <h4 style="text-align: center"><span class="badge bg-secondary">Usage</span></h4>
+          <h6 style="text-align: left">Spelling correction</span></h6>
+          <ol type="1">
+            <li style="text-align: left">Choose the language of the text</li>
+            <li style="text-align: left">Write or upload the text (TXT, CSV, TSV)</li>
+            <li style="text-align: left">(Optional) Allow data collection for analysis</li>
+            <li style="text-align: left">Receive the corrected text and download the results</li>
+          </ol>
 
-      <div class="col-lg-11 mx-auto">
-        <h1 class="display-5 fw-bold gap-3 px-4">NO HELP</h1>
+          <h6 style="text-align: left">Augmentation with Augmentex</span></h6>
+          <ol type="1">
+            <li style="text-align: left">Choose the level of augmentation (chars or words)</li>
+            <li style="text-align: left">Select the language</li>
+            <li style="text-align: left">Configure settings:
+              <ol>
+                <li>Specify the percentage of the phrase to be augmented (unit_prod)</li>
+                <li>Set the minimum and maximum number of changes</li>
+                <li>Enter a random seed number</li>
+              </ol>
+            </li>
+            <li style="text-align: left">Enter your text or upload a file</li>
+            <li style="text-align: left">Receive a generated text</li>
+          </ol>
+
+          <h6 style="text-align: left">Augmentation with SBSC</span></h6>
+          <ol type="1">
+            <li style="text-align: left">Choose the language of the text</li>
+            <li style="text-align: left">Enter your text or upload a file</li>
+            <li style="text-align: left">Choose the dataset for calculating the error distribution</li>
+            <li style="text-align: left">Receive the augmented text</li>
+          </ol>
+
+          <h6 style="text-align: left">Augmentation with Pipeline</span></h6>
+          <ol type="1">
+            <li style="text-align: left">Select a sequence of augmentation methods (up to three)</li>
+            <li style="text-align: left">Configure settings and specify the language</li>
+            <li style="text-align: left">Enter your text or upload a file</li>
+            <li style="text-align: left">Choose the dataset (for SBSC method)</li>
+            <li style="text-align: left">Receive the augmented text</li>
+          </ol>
+        </div>
       </div>
     </div>
 
